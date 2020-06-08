@@ -1,10 +1,20 @@
 # @vlsergey/batcher
 
-Simple JavaScript to batch async requests.
+Small JavaScript module to batch async requests with queue.
 
 [![NPM version][npm-image]][npm-url]
 [![Build Status][travis-image]][travis-url]
 [![Downloads][downloads-image]][downloads-url]
+
+# Installation
+```
+npm i --save @vlsergey/batcher
+```
+or
+```
+npm i --save-dev @vlsergey/batcher
+
+```
 
 # Usage
 
@@ -12,28 +22,32 @@ Simple JavaScript to batch async requests.
 
 /* Define function that will do actual work. Not for single,
 but for collection of keys. */
-const batchFunction /* : ( any[][] => Promise< ValueType[] > ) */ = async ( args /* : any[][] */ ) => {
+const batchFunction = async ( allArgs ) => {
+  // allArgs is array of arrays (unless flattenArguments specified )
   const response = fetch( /*...*/ );
   if ( !response.ok ) {
     console.error( response );
     throw new Error( "Unable to fetch API result: " + response.statusText );
   }
-  return await response.json() /* : ValueType[] */;
+  // return the array of result
+  // length of result array MUST be the same as length of allArgs
+  // order IS important
+  return await response.json();
 }
 const batcher = new Batcher( batchFunction );
 /* ... */
 
 // Queue single call
-const aPromise /* : Promise< ValueType > */ = batcher.queue( 'Test value' );
-aPromise.then( someResultA /* : ValueType */ => { /*...*/ } );
+const aPromise = batcher.queue( 'Test value' ); // is't a Promise
+aPromise.then( someResultA => { /*...*/ } );
 
 // Still single call with multiple arguments
-const bPromise /* : Promise< ValueType > */ = batcher.queue( 'arg0', 'arg1' );
-bPromise.then( someResultB /* : ValueType */ => { /*...*/ } );
+const bPromise = batcher.queue( 'arg0', 'arg1' ); // is't a Promise
+bPromise.then( someResultB => { /*...*/ } );
 
 // Queue 2 calls with different number of arguments
-const allPromises /* : Promise< ValueType[] > */ =  batcher.queueAll( [ 'arg3' ], [ 'arg3', 'arg4' ] );
-allPromises.then( ( values /* : ValueType[] */ ) => /* ... */ );
+const allPromises = batcher.queueAll( [ 'arg3' ], [ 'arg3', 'arg4' ] ); // Also a Promise, but obtained from Promise.all( ... ) call
+allPromises.then( ( values ) => /* ... */ );
 
 // Technically will wait, but looks nice in code in async functions
 const gimmeResultNow = await batcher.queue( someRequest );
