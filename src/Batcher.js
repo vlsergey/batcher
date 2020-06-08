@@ -5,8 +5,8 @@ import type { OptionsType } from './OptionsType';
 type ArgsType = any[];
 type ValueType = any;
 
-type BatchFunctionType = any[] => Promise< ( ?ValueType )[] >;
-type QueueItem = { args : ArgsType, reject : any, resolve : ?ValueType => any };
+type BatchFunctionType = any[] => Promise< ValueType[] >;
+type QueueItem = { args : ArgsType, reject : any, resolve : ValueType => any };
 
 export const DEFAULT_MAX_BATCH_SIZE : number = 50;
 export const DEFAULT_MAX_QUEUE_SIZE : number = Number.MAX_SAFE_INTEGER;
@@ -38,7 +38,7 @@ export default class Batcher {
     this._options = { ...DEFAULT_OPTIONS, ...options };
   }
 
-  queue( ...args : ArgsType ) : Promise< ?ValueType > {
+  queue( ...args : ArgsType ) : Promise< ValueType > {
     if ( this._queue.length == this._options.maxQueueSize ) {
       throw new Error( `Queue is at max capacity (${this._options.maxQueueSize}), unable to add additional item` );
     }
@@ -50,7 +50,7 @@ export default class Batcher {
     return result;
   }
 
-  queueAll( ...allArgs : ArgsType[] ) : Promise< ?ValueType[] > {
+  queueAll( ...allArgs : ArgsType[] ) : Promise< ValueType[] > {
     if ( this._queue.length + allArgs.length > this._options.maxQueueSize ) {
       throw new Error( `Queue is near max capacity (${this._options.maxQueueSize}), unable to ${allArgs.length} additional items` );
     }
@@ -58,7 +58,7 @@ export default class Batcher {
     const allPromises = allArgs.map( ( args : ArgsType ) => new Promise( ( resolve, reject ) => {
       this._queue.push( { args, resolve, reject } );
     } ) );
-    const result : Promise< ?ValueType[] > = Promise.all( allPromises );
+    const result : Promise< ValueType[] > = Promise.all( allPromises );
     this._process();
     return result;
   }
