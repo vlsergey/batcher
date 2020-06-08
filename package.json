@@ -1,6 +1,6 @@
 {
   "name": "@vlsergey/batcher",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Small JavaScript module to batch async requests with queue",
   "main": "src/index.js",
   "scripts": {
