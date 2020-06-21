@@ -2,7 +2,7 @@
   "name": "@vlsergey/batcher",
   "version": "0.2.1",
   "description": "Small JavaScript module to batch async requests with queue",
-  "main": "src/index.js",
+  "main": "lib/index.js",
   "scripts": {
     "build": "cross-env NODE_ENV=production babel -d lib src && flow-copy-source -v src lib",
     "flow:check": "flow check",
