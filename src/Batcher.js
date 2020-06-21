@@ -6,7 +6,12 @@ type ArgsType = any[];
 type ValueType = any;
 
 type BatchFunctionType = any[] => Promise< ValueType[] >;
-type QueueItem = { args : ArgsType, reject : any, resolve : ValueType => any };
+type QueueItem = {|
+  args : ArgsType,
+  promise : Promise< ValueType >,
+  reject : any,
+  resolve : ValueType => any
+|};
 
 export const DEFAULT_MAX_BATCH_SIZE : number = 50;
 export const DEFAULT_MAX_QUEUE_SIZE : number = Number.MAX_SAFE_INTEGER;
@@ -18,6 +23,14 @@ export const DEFAULT_OPTIONS : OptionsType = Object.freeze( {
   maxQueueSize: Number.MAX_SAFE_INTEGER,
 } );
 
+function sameArgs( argsA : any[], argsB : any[] ) : boolean {
+  if ( argsA.length !== argsB.length ) return false;
+  for ( let i = 0; i < argsA.length; i++ ) {
+    if ( argsA[ i ] !== argsB[ i ] ) return false;
+  }
+  return true;
+}
+
 /**
  * Uses single internal queue to batch all incoming queries.
  * If there is no request in progress now, any incoming request will start one.
@@ -27,6 +40,7 @@ export default class Batcher {
   _batchFunction : BatchFunctionType;
   _options : OptionsType;
 
+  _currentBatch : QueueItem[] = [];
   _inProgress : boolean = false;
   _queue : QueueItem[] = [];
 
@@ -39,15 +53,29 @@ export default class Batcher {
   }
 
   queue( ...args : ArgsType ) : Promise< ValueType > {
+    const alreadyQueued = this._currentBatch.find( queued => sameArgs( args, queued.args ) )
+      || this._queue.find( queued => sameArgs( args, queued.args ) );
+    if ( alreadyQueued ) {
+      return alreadyQueued.promise;
+    }
+
     if ( this._queue.length == this._options.maxQueueSize ) {
       throw new Error( `Queue is at max capacity (${this._options.maxQueueSize}), unable to add additional item` );
     }
-    const result = new Promise( ( resolve, reject ) => {
-      const queueItem : QueueItem = { args, resolve, reject };
-      this._queue.push( queueItem );
+
+    let resolve : ( ValueType => any );
+    let reject : any;
+    const promise = new Promise( ( pResolve, pReject ) => {
+      resolve = pResolve;
+      reject = pReject;
     } );
+
+    // $FlowFixMe
+    const queueItem : QueueItem = { args, promise, resolve, reject };
+    this._queue.push( queueItem );
+
     this._process();
-    return result;
+    return promise;
   }
 
   queueAll( ...allArgs : ArgsType[] ) : Promise< ValueType[] > {
@@ -55,9 +83,7 @@ export default class Batcher {
       throw new Error( `Queue is near max capacity (${this._options.maxQueueSize}), unable to ${allArgs.length} additional items` );
     }
 
-    const allPromises = allArgs.map( ( args : ArgsType ) => new Promise( ( resolve, reject ) => {
-      this._queue.push( { args, resolve, reject } );
-    } ) );
+    const allPromises = allArgs.map( ( args : ArgsType ) => this.queue( ...args ) );
     const result : Promise< ValueType[] > = Promise.all( allPromises );
     this._process();
     return result;
@@ -67,7 +93,8 @@ export default class Batcher {
     if ( this._inProgress ) return;
 
     this._inProgress = true;
-    const _queueInProgress : QueueItem[] = this._queue.splice( 0, this._options.maxBatchSize );
+    const _queueInProgress : QueueItem[] = this._currentBatch
+      = this._queue.splice( 0, this._options.maxBatchSize );
     try {
       const batchArguments : any[][] = _queueInProgress.map( ( { args } : QueueItem ) => args );
       let results : ValueType[];
@@ -92,6 +119,7 @@ export default class Batcher {
       _queueInProgress.forEach( ( { reject } ) => reject( err ) );
     } finally {
       this._inProgress = false;
+      this._currentBatch = [];
     }
 
     if ( this._queue.length > 0 ) {

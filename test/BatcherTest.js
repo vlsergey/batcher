@@ -70,4 +70,27 @@ describe( 'Batcher', () => {
     assert.deepEqual( queried, [ 'A', 'B,C,D', 'E,F' ] );
   } );
 
+  it( 'correctly handle duplicates', async() => {
+    let counter = 0;
+    const queried : string[] = [];
+    const worker = async( allArgs : any[][] ) => {
+      await sleep( 0 );
+      queried.push( allArgs.join( ',' ) );
+      return allArgs.map( i => i.join( ',' ) + '/' + ( counter++ ) );
+    };
+    const batcher : Batcher = new Batcher( worker );
+
+    const p1 = batcher.queue( 'A' );
+    const p2 = batcher.queue( 'B' );
+    const p3 = batcher.queue( 'A' );
+
+    const r1 = await p1;
+    const r2 = await p2;
+    const r3 = await p3;
+
+    assert.equal( r1, r3 );
+    assert.notEqual( r1, r2 );
+    assert.notEqual( r2, r3 );
+  } );
+
 } );
