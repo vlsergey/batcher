@@ -1,3 +1,4 @@
+/.npmrc/
 /lib/
+/lib-test/
 /node_modules/
-/.npmrc

@@ -3,7 +3,6 @@
 Small JavaScript module to batch async requests with queue.
 
 [![NPM version][npm-image]][npm-url]
-[![Build Status][travis-image]][travis-url]
 [![Downloads][downloads-image]][downloads-url]
 
 # Installation
@@ -77,7 +76,5 @@ const batcher = new Batcher( batchFunction, options );
 
 [npm-image]: https://img.shields.io/npm/v/@vlsergey/batcher.svg?style=flat-square
 [npm-url]: https://npmjs.org/package/@vlsergey/batcher
-[travis-image]: https://travis-ci.com/vlsergey/batcher.svg?branch=master
-[travis-url]: https://travis-ci.com/vlsergey/batcher
 [downloads-image]: http://img.shields.io/npm/dm/@vlsergey/batcher.svg?style=flat-square
 [downloads-url]: https://npmjs.org/package/@vlsergey/batcher
