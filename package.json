@@ -1,6 +1,6 @@
 {
   "name": "@vlsergey/batcher",
-  "version": "0.3.1",
+  "version": "1.0.0",
   "description": "Small JavaScript module to batch async requests with queue",
   "main": "./lib/cjs/index.js",
   "module": "./lib/esm/index.js",
