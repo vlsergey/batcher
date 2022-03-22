@@ -2,6 +2,7 @@
 
 Small JavaScript module to batch async requests with queue.
 
+[![CI][ci-image]][ci-url]
 [![NPM version][npm-image]][npm-url]
 [![Downloads][downloads-image]][downloads-url]
 
@@ -74,7 +75,10 @@ const batcher = new Batcher( batchFunction, options );
 
 `queueAll( [arg00, arg00], [arg10, arg11], ... )` -- adds multiple elements to queue. Immediately calls `batchFunction` if not in progress.
 
+[ci-image]: https://github.com/vlsergey/batcher/actions/workflows/node.js.yml/badge.svg
+[ci-url]: https://github.com/vlsergey/batcher/actions/workflows/node.js.yml
 [npm-image]: https://img.shields.io/npm/v/@vlsergey/batcher.svg?style=flat-square
 [npm-url]: https://npmjs.org/package/@vlsergey/batcher
 [downloads-image]: http://img.shields.io/npm/dm/@vlsergey/batcher.svg?style=flat-square
 [downloads-url]: https://npmjs.org/package/@vlsergey/batcher
+[![Node.js CI](https://github.com/vlsergey/batcher/actions/workflows/node.js.yml/badge.svg)](https://github.com/vlsergey/batcher/actions/workflows/node.js.yml)[![Node.js CI](https://github.com/vlsergey/batcher/actions/workflows/node.js.yml/badge.svg)](https://github.com/vlsergey/batcher/actions/workflows/node.js.yml)
